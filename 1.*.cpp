@@ -1,6 +1,3 @@
-/**
- Найти все простые числа в диапазоне [2..n] за O(n).
-**/
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
