@@ -1,71 +1,51 @@
+/*
+Дан массив строк. Количество строк не больше 10
+Размер алфавита ­ 256 символов. Последний символ строки = ‘\0’.
+Отсортировать массив методом поразрядной cортировки MSD по символам.
+*/
 #include <iostream>
 #include <string>
-#include <stdio.h>
 #include <vector>
 #include <algorithm>
-#define ALPH 256
+#define ALPHA 256
 
 using namespace std;
 
-typedef std::vector<std::string> strings;
+void msd_sort(vector<string>::iterator first, vector<string>::iterator last, int offset) {
+    vector<vector<string>> buf(ALPHA);
 
-//radixSort(arr, 0, arr.length - 1, 1)
-void radixSort(char **arr, int left, int right, int d, int max) {
-    int *cnt = new int[ALPH];
-    int i, j;
+    for (vector<string>::iterator i = first; i != last; ++i)
+        buf[static_cast<int>((*i)[offset])].push_back(*i);
 
-    char **c = (char**) calloc(right + 2, sizeof(char*));
-
-    if (d > max || left >= right)
-        return;
-
-    for (j = 0; j <= ALPH + 1; ++j)
-        cnt[j] = 0;
-
-    for (i = left; i <= right; ++i) {
-        j = arr[i][d];
-        cnt[j + 1]++;
+    for (int i = 1; i < ALPHA; ++i) 
+        if (buf[i].size() > 1)
+            msd_sort(buf[i].begin(), buf[i].end(), offset + 1);
+    
+    int k = 0;
+    for (vector<string>::iterator i = first; i != last;) {
+        for (vector<string>::iterator j = buf[k].begin(); j != buf[k].end(); ++j)
+            *i++ = *j;
+        ++k;
     }
-    for (j = 2; j <= ALPH; j++)
-        cnt[j] += cnt[j - 1];
-
-    for (i = left; i <= right; ++i) {
-        j = arr[i][d];
-        c[left + cnt[j]] = arr[i];
-        cnt[j]++;
-    }
-
-    for (i = left; i <= right; ++i)
-        arr[i] = c[i];
-    free(c);
-
-    radixSort(arr, left, left + cnt[0] - 1, d + 1, max);
-    for (int i = 1; i <= ALPH; ++i)
-        radixSort(arr, left + cnt[i - 1], left + cnt[i] - 1, d + 1, max);
 }
 
 int main() {
-    int max = 0, j = 0;
-    char c;
-    std::string buffer;
-    strings words;
-    std::cin >> buffer;
-    while (!std::cin.eof())
-    {
-        if (!buffer.empty())
-        {
-            words.push_back(buffer);
-        }
-        buffer.clear();
-        std::cin >> buffer;
+    string buf;
+    vector<string> items;
+
+    cin >> buf;
+    while (!cin.eof()) {
+        if (!buf.empty())
+            items.push_back(buf);
+
+        buf.clear();
+        cin >> buf;
     }
 
-    sort(words.begin(), words.end());
-    //radix_msd_sort(words.begin(), words.end(), 0);
-    
-    for (strings::iterator i = words.begin(); i != words.end(); ++i)
-        std::cout << *i << std::endl;
+    msd_sort(items.begin(), items.end(), 0);
 
+    for (vector<string>::iterator i = items.begin(); i != items.end(); ++i)
+        cout << *i << endl;
 
     return 0;
 }
