@@ -1,43 +1,81 @@
-/**
-На числовой прямой окрасили N отрезков. Известны координаты левого и правого концов каждого
-отрезка (Li и Ri). Найти длину окрашенной части числовой прямой.
-**/
 #include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <algorithm>
+#include <cstdio>
+#include <vector>
+#include <utility>
+#include <functional>
+#include <stdint.h>
+#include <string.h>
+#include <assert.h>
+#include <cmath>
 
-using namespace std;
+template <class T>
+int findPivotIndex(T *a, size_t first, size_t last) {
+    size_t mid = (first + last) / 2;
 
-typedef struct Segment {
-    int left;
-    int right;
-} Segment;
+    if (a[mid] < a[first])
+        a[first].swap(a[mid]);
+    if (a[last] < a[first])
+        a[first].swap(a[last]);
+    if (a[last]< a[mid ])
+        a[mid].swap(a[last]);
 
-bool operator < (const Segment &p1, const Segment &p2) {
-    return p1.left < p2.left;
+    a[mid].swap(a[last - 1]);
+    return last - 1;
+}
+
+template <class T>
+size_t Partition(T* arr, size_t begin, size_t end) {
+    size_t pivotIndex = findPivotIndex(arr, begin, end);
+    std::swap(arr[begin], arr[pivotIndex]);
+    T pivot = arr[begin];
+
+    size_t i = begin + 1;
+    size_t j = end;
+
+    while (true) {
+        while (arr[i] < pivot)
+            ++i;
+
+        while ( arr[j] > pivot)
+            --j;
+
+        if (i < j) {
+            arr[i].swap(arr[j]);
+            ++i;
+            --j;
+        } else {
+            arr[begin].swap(arr[i - 1]);
+            return i - 1;
+        }
+    }
+}
+
+
+template<class T>
+void insertionSort (T *input, size_t lo, size_t hi)
+{
+    for (size_t i = lo + 1; i < hi; ++i) {
+        for (int j = i; j > lo && input[j] < input[j-1]; --j) {
+           input[j].swap(input[j-1]);
+        }
+    }
 }
 
 template<class T>
-bool compare(const T &obj1, const T &obj2) {
-    return obj1 < obj2;
-}
-
-template<class T>
-void swap(T *obj1, T *obj2) {
-    T temp = *obj1;
-    *obj1 = *obj2;
-    *obj2 = temp;
-}
-
-template<class T>
-void heap_make(T *a, int n, bool (*cmp) (const T &, const T &)) {
+void heap_make(T *a, int n) {
     for (int i = n/2; i >= 1; --i)
         for (int j = i; j <= n/2;) {
             int k = j*2;
-            if (k + 1 <= n && compare(a[k], a[k+1]))
+            if (k + 1 <= n && a[k] < a[k+1])
                 ++k;
 
-            if (compare(a[j], a[k])) {
-                swap(&a[k], &a[j]);
+            if (a[j] < a[k]) {
+                a[k].swap(a[j]);
                 j = k;
             } else
                 break;
@@ -45,59 +83,60 @@ void heap_make(T *a, int n, bool (*cmp) (const T &, const T &)) {
 }
 
 template<class T>
-void heap_pop(T *a, int n, bool (*cmp) (const T &, const T &)) {
-    swap(a[n], a[1]);
+void heap_pop(T *a, int n) {
+    a[n].swap(a[1]);
     for (int i = 1; 2*i < n;) {
         i *= 2;
-        if (i+1 < n && compare(a[i], a[i+1]))
+        if (i+1 < n && a[i] < a[i+1])
             i += 1;
 
-        if (compare(a[i/2], a[i]))
-            swap(&a[i/2], &a[i]);
+        if (a[i/2] < a[i])
+            a[i/2].swap(a[i]);
     }
 }
 
 template<class T>
-void heap_sort_fast(T *data, int n, bool (*cmp) (const T &, const T &)) {
-    heap_make(data - 1, n, cmp);
+void heap_sort_fast(T *data, int n) {
+    heap_make(data - 1, n);
     for (int i = 0; i < n; ++i)
-        heap_pop(data - 1, n - i, cmp);
+        heap_pop(data - 1, n - i);
 }
 
-int calc(Segment *a, int size) {
-    Segment prev = a[0];
-    int len = prev.right - prev.left;
-    for (int i = 1; i < size; ++i) {
-        if (a[i].left >= prev.right && a[i].right > prev.right) {
-            len += a[i].right - a[i].left;
-            prev = a[i];
+template <class T>
+void quickSortIterative(T *arr, int l, int h) {
+    int stack[100000];
+    int top = -1;
+
+    stack[++top] = l;
+    stack[++top] = h;
+
+    while ( top >= 0 ) {
+        h = stack[ top-- ];
+        l = stack[ top-- ];
+
+        if (l >= h)
+            continue;
+
+        if (h - l <= 15000) {
+            heap_sort_fast(arr + l, h - l + 1);
+            continue;
         }
 
-        if (a[i].left < prev.right && a[i].right > prev.right) {
-            len += a[i].right - prev.right;
-            prev.right = a[i].right;
+        int p = Partition( arr, l, h );
+
+        if ( p - 1 > l ) {
+            stack[++top] = l;
+            stack[++top] = p - 1;
         }
 
+        if ( p + 1 < h ) {
+            stack[++top] = p + 1;
+            stack[++top] = h;
+        }
     }
-    return len;
 }
 
-int main() {
-    int size;
-    cin >> size;
-
-    Segment *arr = new Segment[size];
-
-    for (int i = 0; i < size; ++i)
-        cin >> arr[i].left >> arr[i].right;
-
-    heap_sort_fast(arr, size, compare);
-
-    cout << calc(arr, size);
-
-    delete[] arr;
-
-    return 0;
+void sort(BlackInt *begin, BlackInt *end) {
+    size_t n = end - begin;
+    quickSortIterative(begin, 0, n - 1);
 }
-
-
