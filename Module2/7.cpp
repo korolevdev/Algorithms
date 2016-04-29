@@ -89,7 +89,7 @@ void quickSortIterative(T *arr, int l, int h) {
         h = stack[top--];
         l = stack[top--];
 
-        if (h - l <= 23500) { //  if (h - l <= 10) {
+        if (h - l <= 10) {
             insertionSort(arr + l, 0, h - l + 1);
             continue;
         }
