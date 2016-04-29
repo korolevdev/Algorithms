@@ -1,2 +1,2 @@
 # Algorithms
-First semester of technopark park.mail.ru
+First semester of course "Algorithms and Data structures" by park.mail.ru
